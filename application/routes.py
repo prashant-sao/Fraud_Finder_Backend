@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify, request, render_template
-from flask_security import auth_required, current_user, login_user,logout_user
+from flask_security import auth_required, current_user, login_user,logout_user,Security
 from werkzeug.security import generate_password_hash, check_password_hash
 from application.database import db
 import requests
 from bs4 import BeautifulSoup
 import re
 import logging
+
 
 # Import your fraud detection modules
 
@@ -17,6 +18,7 @@ from application.agent.job_recommendation import ml_recommender
 
 
 fraud_detector = JobFraudDetector()
+security = Security()
 
 api_bp = Blueprint('api_bp', __name__)
 
@@ -28,9 +30,9 @@ api_bp = Blueprint('api_bp', __name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# @api_bp.route('/')
-# def index():
-#     return render_template('frontend/index.html')
+@api_bp.route('/')
+def index():
+    return render_template('frontend/index.html')
 
 @api_bp.route('/api/register', methods=['POST'])
 def register():
@@ -44,13 +46,13 @@ def register():
                 return jsonify({"message": f"{field} is required"}), 400
         
         # Check if user already exists
-        if current_user.security.datastore.find_user(email=credentials['email']):
+        if api_bp.security.datastore.find_user(email=credentials['email']):
             return jsonify({"message": "User already exists"}), 400
             
-        if current_user.security.datastore.find_user(username=credentials['username']):
+        if api_bp.security.datastore.find_user(username=credentials['username']):
             return jsonify({"message": "Username already taken"}), 400
         
-        new_user = current_user.security.datastore.create_user(
+        new_user = api_bp.security.datastore.create_user(
             email=credentials['email'],
             username=credentials['username'], 
             password=generate_password_hash(credentials['password']),
@@ -77,7 +79,7 @@ def login():
             return jsonify({'message': 'Email and password are required!'}), 400
 
         # Find user by email
-        user = current_user.security.datastore.find_user(email=email)
+        user = api_bp.security.datastore.find_user(email=email)
         
         if user and check_password_hash(user.password, password):
             login_user(user)
@@ -120,18 +122,18 @@ def logout_simple():
 def edit_profile():
     try:
         data = request.get_json()
-        user = current_user.security.datastore.find_user(id=current_user.id)
+        user = api_bp.security.datastore.find_user(id=current_user.id)
 
         if 'username' in data:
             # Check if username is already taken by another user
-            existing_user = current_user.security.datastore.find_user(username=data['username'])
+            existing_user = api_bp.security.datastore.find_user(username=data['username'])
             if existing_user and existing_user.id != current_user.id:
                 return jsonify({'message': 'Username already taken!'}), 400
             user.username = data['username']
             
         if 'email' in data:
             # Check if email is already taken by another user
-            existing_user = current_user.security.datastore.find_user(email=data['email'])
+            existing_user = api_bp.security.datastore.find_user(email=data['email'])
             if existing_user and existing_user.id != current_user.id:
                 return jsonify({'message': 'Email already taken!'}), 400
             user.email = data['email']
@@ -563,4 +565,3 @@ def dismiss_alert():
             'success': False,
             'error': str(e)
         }), 500
-
