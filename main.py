@@ -12,23 +12,11 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fraud_detection.db'
     app.config.from_object(LocalDevlopmentConfig)
     
-    # Enable CORS
-    """CORS(app, 
-         resources={r"/api/": {"origins": ""}},
-         allow_headers=["Content-Type", "Authorization"],
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         supports_credentials=True)
-
-    CORS(app, origins=[
-    "http://localhost:5173",
-    "https://frontend-fraud-finder-tzle.vercel.app"
-    ], supports_credentials=True)"""
-
     CORS(app, 
          resources={r"/api/*": {
              "origins": [
                  "http://localhost:5173",
-                 "https://frontend-fraud-finder.vercel.app",
+                 "https://fraud-finder-frontend-ffw3.vercel.app/",
                  
                  "https://*.vercel.app"  # Allow all Vercel preview deployments
              ],
