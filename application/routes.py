@@ -20,9 +20,9 @@ api_bp = Blueprint('api_bp', __name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@api_bp.route('/')
-def index():
-    return render_template('frontend/index.html')
+# @api_bp.route('/')
+# def index():
+#     return render_template('frontend/index.html')
 
 @api_bp.route('/api/register', methods=['POST'])
 def register():
@@ -555,3 +555,4 @@ def dismiss_alert():
             'success': False,
             'error': str(e)
         }), 500
+
