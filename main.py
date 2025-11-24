@@ -13,12 +13,21 @@ def create_app():
     app.config.from_object(LocalDevlopmentConfig)
     
     # Enable CORS
-    CORS(app, 
-         resources={r"/api/*": {"origins": "*"}},
-         allow_headers=["Content-Type", "Authorization"],
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         supports_credentials=True)
-    
+    # CORS(app, 
+    #      resources={r"/api/*": {"origins": "*"}},
+    #      allow_headers=["Content-Type", "Authorization"],
+    #      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    #      supports_credentials=True)
+
+    allowed_origins = [
+        "https://your-vercel-domain.vercel.app",
+        "http://localhost:5173"
+    ]
+
+    CORS(app,
+        resources={r"/api/*": {"origins": allowed_origins}},
+        supports_credentials=True)
+
     db.init_app(app)
     datastore = SQLAlchemyUserDatastore(db, User, Role)
     app.security = Security(app, datastore)
@@ -26,10 +35,12 @@ def create_app():
     # Add after_request handler INSIDE create_app, not in with block
     @app.after_request
     def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        origin = request.headers.get('Origin')
+        if origin in allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+        response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
         return response
     
     # Import and register blueprints INSIDE create_app
