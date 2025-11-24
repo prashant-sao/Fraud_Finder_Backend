@@ -10,11 +10,19 @@ import logging
 # Import your fraud detection modules
 
 from application.agent.auto_reply import generate_auto_reply
+
+
 from application.agent.risk_score import JobFraudDetector
 from application.agent.job_recommendation import ml_recommender
+
+
 fraud_detector = JobFraudDetector()
 
 api_bp = Blueprint('api_bp', __name__)
+
+
+
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,10 +44,10 @@ def register():
                 return jsonify({"message": f"{field} is required"}), 400
         
         # Check if user already exists
-        if current_user.security.datastore.find_user(email=credentials['email']):
+        if api_bp.security.datastore.find_user(email=credentials['email']):
             return jsonify({"message": "User already exists"}), 400
             
-        if current_user.security.datastore.find_user(username=credentials['username']):
+        if api_bp.security.datastore.find_user(username=credentials['username']):
             return jsonify({"message": "Username already taken"}), 400
         
         new_user = current_user.security.datastore.create_user(
@@ -69,7 +77,7 @@ def login():
             return jsonify({'message': 'Email and password are required!'}), 400
 
         # Find user by email
-        user = current_user.security.datastore.find_user(email=email)
+        user = api_bp.security.datastore.find_user(email=email)
         
         if user and check_password_hash(user.password, password):
             login_user(user)
