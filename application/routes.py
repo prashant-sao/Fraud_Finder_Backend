@@ -44,10 +44,10 @@ def register():
                 return jsonify({"message": f"{field} is required"}), 400
         
         # Check if user already exists
-        if api_bp.security.datastore.find_user(email=credentials['email']):
+        if current_user.security.datastore.find_user(email=credentials['email']):
             return jsonify({"message": "User already exists"}), 400
             
-        if api_bp.security.datastore.find_user(username=credentials['username']):
+        if current_user.security.datastore.find_user(username=credentials['username']):
             return jsonify({"message": "Username already taken"}), 400
         
         new_user = current_user.security.datastore.create_user(
@@ -77,7 +77,7 @@ def login():
             return jsonify({'message': 'Email and password are required!'}), 400
 
         # Find user by email
-        user = api_bp.security.datastore.find_user(email=email)
+        user = current_user.security.datastore.find_user(email=email)
         
         if user and check_password_hash(user.password, password):
             login_user(user)
