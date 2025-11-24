@@ -20,9 +20,9 @@ api_bp = Blueprint('api_bp', __name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@api_bp.route('/')
-def index():
-    return render_template('frontend/index.html')
+# @api_bp.route('/')
+# def index():
+#     return render_template('frontend/index.html')
 
 @api_bp.route('/api/register', methods=['POST'])
 def register():
@@ -42,7 +42,7 @@ def register():
         if current_user.security.datastore.find_user(username=credentials['username']):
             return jsonify({"message": "Username already taken"}), 400
         
-        new_user = api_bp.security.datastore.create_user(
+        new_user = current_user.security.datastore.create_user(
             email=credentials['email'],
             username=credentials['username'], 
             password=generate_password_hash(credentials['password']),
@@ -112,18 +112,18 @@ def logout_simple():
 def edit_profile():
     try:
         data = request.get_json()
-        user = api_bp.security.datastore.find_user(id=current_user.id)
+        user = current_user.security.datastore.find_user(id=current_user.id)
 
         if 'username' in data:
             # Check if username is already taken by another user
-            existing_user = api_bp.security.datastore.find_user(username=data['username'])
+            existing_user = current_user.security.datastore.find_user(username=data['username'])
             if existing_user and existing_user.id != current_user.id:
                 return jsonify({'message': 'Username already taken!'}), 400
             user.username = data['username']
             
         if 'email' in data:
             # Check if email is already taken by another user
-            existing_user = api_bp.security.datastore.find_user(email=data['email'])
+            existing_user = current_user.security.datastore.find_user(email=data['email'])
             if existing_user and existing_user.id != current_user.id:
                 return jsonify({'message': 'Email already taken!'}), 400
             user.email = data['email']
@@ -555,3 +555,4 @@ def dismiss_alert():
             'success': False,
             'error': str(e)
         }), 500
+
